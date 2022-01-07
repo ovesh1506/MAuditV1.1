@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+  <TextView
+      android:id="@+id/lblScan"
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      android:gravity="center|center_horizontal"
+      android:textStyle="bold"
+      android:layout_gravity="center_horizontal"
+      android:textSize="15sp"
+      android:layout_marginTop="10dp"
+
+      />
+
+  <TextView
+      android:id="@+id/textResult"
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      android:background="@color/blue_btn_bg_color"
+      android:gravity="center|center_horizontal"
+      android:text="Tap To Scan"
+      android:textStyle="bold"
+      android:layout_gravity="center_horizontal"
+      android:textSize="15sp"
+      android:layout_marginTop="10dp"
+      android:clickable="true"
+      />
+
+
+    <Spinner
+        android:id="@+id/sp_failreason"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:padding="20dp"
+        android:visibility="gone"
+        android:entries="@array/barcode_scan_failed_reason"
+        >
+
+    </Spinner>
+
+    <Button
+        android:id="@+id/dialogButtonOK"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="5dp"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center|center_horizontal"
+        android:padding="15dp"
+        android:text=" Submit "
+
+        />
+
+
+</LinearLayout>

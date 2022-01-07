@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/Quecard_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardCornerRadius="10dp"
+    card_view:cardElevation="8dp"
+    android:layout_marginBottom="5dp"
+    android:layout_marginTop="5dp"
+    >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:id="@+id/rootLayout">
+
+        <TextView
+            android:id="@+id/txtQue"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="false"
+            android:textColor="@color/text_color"
+            android:textSize="15dp"
+
+            />
+
+        <RadioGroup
+            android:id="@+id/radioGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/rb1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <RadioButton
+                android:id="@+id/rb2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <RadioButton
+                android:id="@+id/rb3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:id="@+id/view1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/childText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/select"
+                android:lines="4"
+                android:padding="7dp"
+                android:singleLine="false"
+                android:visibility="gone"
+                android:gravity="top|left"
+                android:focusableInTouchMode="true"
+                />
+
+            <Spinner
+                android:id="@+id/childSpinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"></Spinner>
+
+            <TextView
+                android:id="@+id/childDatePicker"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@color/select"
+                android:lines="4"
+                android:padding="7dp"
+                android:visibility="gone"></TextView>
+
+        </LinearLayout>
+
+        <!--  <View
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:visibility="gone"
+              android:id="@+id/view2"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:visibility="gone"
+              android:id="@+id/view3"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:visibility="gone"
+              android:id="@+id/view4"/>
+
+          <View
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content"
+              android:visibility="gone"
+              android:id="@+id/view5"/>-->
+
+    </LinearLayout>
+</android.support.v7.widget.CardView>
+

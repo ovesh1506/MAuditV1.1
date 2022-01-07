@@ -1,0 +1,38 @@
+<resources>
+    <string name="title_activity_site_list">Sites</string>
+    <string name="title_activity_category">Category</string>
+
+    <string name="app_name">MAudit</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_username">Username</string>
+    <string name="btn_login">Login</string>
+
+    <string name="btn_cancel">Cancel</string>
+    <string name="enter_username">Please enter username.</string>
+    <string name="enter_password">Please enter password.</string>
+    <string name="error_101_json">Error #101 - Data parsing error please try again</string>
+    <string name="success">Success</string>
+    <string name="error_102_invalid_login">Error #102 Invalid login creadentials.</string>
+    <string name="error_100_slow_internet">Error #100 - Unable to access server.\nDue to slow internet Connection</string>
+    <string name="error_103_i_connection">Error #103 - Please turn on your mobile internet connection</string>
+    <string name="error_104_unexpected_error">Error #104 - Unexpected Error</string>
+    <string name="error_105_database_not_found">Error #105 - Database not Found</string>
+    <string name="no_record_found">No record found for this category.</string>
+    <string name="key_questionset">0</string>
+    <string name="key_answerset">1</string>
+    <string name="key_answerset2">2</string>
+    <string name="key_EditText">3</string>
+    <string name="title_activity_confirmed_call_log">Confirmed CallLog</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_image_capture">Images</string>
+    <string name="submit_validate_error">Please fill all fields before submit.</string>
+    <string name="data_not_found">Error #107 - Data not found please try again.</string>
+    <array name="barcode_scan_failed_reason">
+        <item>Select Reason</item>
+        <item>Barcode scanning issue</item>
+        <item>Barcode not available</item>
+        <item>Scanner not working</item>
+    </array>
+</resources>
