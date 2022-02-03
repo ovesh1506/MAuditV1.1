@@ -9,17 +9,19 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.tabs.TabLayout;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.core.content.ContextCompat;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,6 +33,7 @@ import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.model.SiteList;
 import com.writercorporation.utils.AppConstant;
 
+import java.net.Socket;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +63,14 @@ public class SiteListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_site_list);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+
+
         AppBarLayout appBarLayout = (AppBarLayout) findViewById(R.id.toolbarContainer);
         appBarLayout.setExpanded(true, true);
         appBarLayout.setExpanded(false, true);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
-        check = new AppConstant(this);
+        check = new AppConstant();
         if(actionBar!=null)
             actionBar.setDisplayHomeAsUpEnabled(true);
         try {

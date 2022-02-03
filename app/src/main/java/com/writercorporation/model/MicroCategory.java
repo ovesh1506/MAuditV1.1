@@ -1,5 +1,7 @@
 package com.writercorporation.model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -12,12 +14,23 @@ import java.util.List;
  * Created by amol.tate on 3/16/2016.
  */
 public class MicroCategory implements Serializable {
+
+    @SerializedName("CheckpointGroupID")
+    @Expose
+    private Integer checkpointGroupID;
+
+    @SerializedName("CheckpointSubGroupID")
+    @Expose
     @DatabaseField(id = true)
     private int microCategoryServerId;
 
+    @SerializedName("CheckpointSubGroupDesc")
+    @Expose
     @DatabaseField
     private String microCategoryName;
 
+    @SerializedName("CheckpointGroupOrder")
+    @Expose
     @DatabaseField
     private int microCategoryOrder;
 
@@ -103,5 +116,13 @@ public class MicroCategory implements Serializable {
     public MicroCategory setQuestionListForeignCollection(ForeignCollection<QuestionList> questionListForeignCollection) {
         this.questionListForeignCollection = questionListForeignCollection;
         return this;
+    }
+
+    public Integer getCheckpointGroupID() {
+        return checkpointGroupID;
+    }
+
+    public void setCheckpointGroupID(Integer checkpointGroupID) {
+        this.checkpointGroupID = checkpointGroupID;
     }
 }

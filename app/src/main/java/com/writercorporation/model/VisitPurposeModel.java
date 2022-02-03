@@ -1,5 +1,7 @@
 package com.writercorporation.model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
@@ -10,14 +12,28 @@ import com.j256.ormlite.table.DatabaseTable;
 public class VisitPurposeModel {
     @DatabaseField(generatedId = true)
     private int id;
+
+    @Expose
+    @SerializedName("ControlCaption")
     @DatabaseField
     private String ControlCaption;
+
+    @Expose
+    @SerializedName("ControlType")
     @DatabaseField
     private String ControlType;
+    @Expose
+    @SerializedName("ControlValues")
     @DatabaseField
     private String ControlValues;
+
+    @Expose
+    @SerializedName("PurposeDesc")
     @DatabaseField
     private String PurposeDesc;
+
+    @Expose
+    @SerializedName("PurposeID")
     @DatabaseField
     private String PurposeID;
 

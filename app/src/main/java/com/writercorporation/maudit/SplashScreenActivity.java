@@ -8,6 +8,7 @@ import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.animation.Animation;
@@ -19,21 +20,23 @@ import android.widget.Toast;
 
 import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.design.CircularProgressBar;
+import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.ConnectionDetector;
 
 import net.sqlcipher.database.SQLiteDatabase;
 
 public class SplashScreenActivity extends Activity {
     private ConnectionDetector cd;
+    private AppConstant app;
     CircularProgressBar circularProgressBar;
     TextView versionNameTV;
     public void onAttachedToWindow() {
         super.onAttachedToWindow();
         Window window = getWindow();
         window.setFormat(PixelFormat.RGBA_8888);
-        SQLiteDatabase.loadLibs(this);
-        DatabaseManager.init(this);
+        //SQLiteDatabase.loadLibs(this);
 
+        Log.e("OnAttach Window","true");
 
 
 
@@ -43,20 +46,24 @@ public class SplashScreenActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
-        if (RootUtil.isDeviceRooted()){
-            return;
-        }
+//        if (RootUtil.isDeviceRooted()){
+//            Log.e("Device rooted","Success");
+//            return;
+//        }
         try {
+            Log.e("SplashScreen ","OnCreate");
+            app = (AppConstant) getApplicationContext();
             PackageManager manager = getPackageManager();
             PackageInfo info = manager.getPackageInfo(getPackageName(), 0);
             String version = info.versionName;
-            versionNameTV = (TextView) findViewById(R.id.versionText);
+            versionNameTV = findViewById(R.id.versionText);
             versionNameTV.setText("Version: "+version);
+            //DatabaseManager.init(this);
         }catch(PackageManager.NameNotFoundException nnfe){
-           // nnfe.printStackTrace();
+            nnfe.printStackTrace();
         }
         CountDown _tik;
-        circularProgressBar = (CircularProgressBar) findViewById(R.id.circularProgress);
+        circularProgressBar = findViewById(R.id.circularProgress);
         _tik=new CountDown(5000,5000,this,LoginActivity.class);// It delay the screen for 2 second and after that switch to YourNextActivity
         _tik.start();
         StartAnimations();
@@ -64,13 +71,13 @@ public class SplashScreenActivity extends Activity {
     private void StartAnimations() {
         Animation anim = AnimationUtils.loadAnimation(this, R.anim.alpha);
         anim.reset();
-        RelativeLayout l=(RelativeLayout) findViewById(R.id.lin_lay);
+        RelativeLayout l= findViewById(R.id.lin_lay);
         l.clearAnimation();
         l.startAnimation(anim);
 
         anim = AnimationUtils.loadAnimation(this, R.anim.translate);
         anim.reset();
-        ImageView iv = (ImageView) findViewById(R.id.logo);
+        ImageView iv = findViewById(R.id.logo);
 
 
         iv.clearAnimation();

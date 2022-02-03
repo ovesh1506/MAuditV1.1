@@ -3,6 +3,8 @@ package com.writercorporation.model;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -15,18 +17,36 @@ import java.util.List;
  * Created by hemina.shah on 3/16/2016.
  */
 public class SiteList implements Parcelable {
+    @Expose
+    @SerializedName("SiteID")
     @DatabaseField(id = true)
     private int siteID;
+    @Expose
+    @SerializedName("SiteCode")
     @DatabaseField
     private String siteCode;
+
+
+    @Expose
+    @SerializedName("ATMCode")
+    @DatabaseField
+    private String atmCode;
+    @Expose
+    @SerializedName("SiteName")
     @DatabaseField
     private String siteName;
+    @Expose
+    @SerializedName("IsCallLogged")
     @DatabaseField
     private String siteIsLogged;
     @DatabaseField
     private String siteStatus;
+    @Expose
+    @SerializedName("LastAuditDate")
     @DatabaseField
     private String lstAuditDate;
+    @Expose
+    @SerializedName("SiteAddressLine1")
     @DatabaseField
     private String siteAddress;
     @DatabaseField
@@ -41,15 +61,18 @@ public class SiteList implements Parcelable {
     @ForeignCollectionField(eager = false)
     private ForeignCollection<VisitPurposeAnswer> VisitInfos;
 
+    @SerializedName("IsBarcoded")
+    @Expose
     @DatabaseField
     private String isBarcoded = "Y";
 
     public SiteList() {
     }
 
-    public SiteList(int siteID, String siteCode, String siteName, String siteIsLogged, String siteStatus, String lstAuditDate, String siteAddress, String isBarcoded) {
+    public SiteList(int siteID, String siteCode, String atmCode,String siteName, String siteIsLogged, String siteStatus, String lstAuditDate, String siteAddress, String isBarcoded) {
         this.siteID = siteID;
         this.siteCode = siteCode;
+        this.atmCode = atmCode;
         this.siteName = siteName;
         this.siteIsLogged = siteIsLogged;
         this.siteStatus = siteStatus;
@@ -125,8 +148,13 @@ public class SiteList implements Parcelable {
         return siteAddress;
     }
 
+    public String getAtmCode() {
+        return atmCode;
+    }
+
     protected SiteList(Parcel in) {
         siteCode = in.readString();
+        atmCode = in.readString();
         siteName = in.readString();
         siteIsLogged = in.readString();
         siteStatus = in.readString();
@@ -143,6 +171,7 @@ public class SiteList implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(siteCode);
+        dest.writeString(atmCode);
         dest.writeString(siteName);
         dest.writeString(siteIsLogged);
         dest.writeString(siteStatus);

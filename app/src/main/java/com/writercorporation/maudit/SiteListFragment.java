@@ -13,14 +13,16 @@ import android.database.sqlite.SQLiteException;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.LinearLayoutCompat;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.SearchView;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.LinearLayoutCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.SearchView;
+
+import android.os.Environment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -56,8 +58,6 @@ import java.io.FileOutputStream;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Exchanger;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
@@ -146,7 +146,7 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
                 isHousekeeping = isHousekeepingList.get(0).getIsHousekeeping();
             } catch (Exception e) {
             }
-            check = new AppConstant(getContext());
+            check = new AppConstant();
             sweetAlertDialog = check.showSweetAlertDialog(getContext(), SweetAlertDialog.PROGRESS_TYPE, false, "CallLog data downloading....", null);
             recyclerView = (RecyclerView) view.findViewById(R.id.list_recycle);
             recycleLayout = new LinearLayoutManager(getActivity());
@@ -399,14 +399,31 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
         // mListener = null;
     }
 
+    public static Boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        } else return false;
+    }
+
+
     public void copyDataBaseToExternal() {
         try {
-            File sd = android.os.Environment.getExternalStorageDirectory();
+            File sd = null;
+
+            if(isExternalStorageWritable()){
+                sd = getActivity().getExternalFilesDir(null);
+            }else{
+                sd = Environment.getExternalStorageDirectory();
+            }
+
+
             if (sd.canWrite()) {
-                File currentDBPath = getActivity().getDatabasePath("MAudit.db");
+                File currentDBPath = getActivity().getDatabasePath("NMAudit.sqlite");//getActivity().getDatabasePath("MAudit.db");
                 String backupDBPath = "WSG_Maudit_Mobile.db";
                 File currentDB = new File(currentDBPath.toString());
                 File backupDB = new File(sd.getAbsolutePath(), backupDBPath);
+                Log.e("Data copy",currentDBPath.getAbsolutePath()+ " ");
 
                 if (currentDB.exists()) {
                     FileChannel src = new FileInputStream(currentDB).getChannel();

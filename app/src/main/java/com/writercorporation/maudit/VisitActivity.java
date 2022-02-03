@@ -1,9 +1,7 @@
 package com.writercorporation.maudit;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -15,9 +13,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,7 +29,6 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import com.writercorporation.adapeter.VisitPurposeAdapter;
 import com.writercorporation.database.DatabaseManager;
@@ -48,8 +47,9 @@ import org.json.JSONObject;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 public class VisitActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -266,7 +266,14 @@ public class VisitActivity extends AppCompatActivity implements View.OnClickList
                     Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                     defaultPath = getPathOfImage();
                     file = new File(defaultPath);
-                    Uri outputfile = Uri.fromFile(file);
+                    Uri outputfile = null;//Uri.fromFile(file);
+
+                    if(isExternalStorageWritable()){
+                        //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                        outputfile = FileProvider.getUriForFile(VisitActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+                    }else{
+                        outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+                    }
 
                     intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
                     startActivityForResult(intent, 1);
@@ -347,8 +354,17 @@ public class VisitActivity extends AppCompatActivity implements View.OnClickList
     public String getPathOfImage() {
         Date currDate = new Date();
         long timeStamp = currDate.getTime();
-        String folderPath = Environment.getExternalStorageDirectory()
-                + "/maudit/images/";
+
+        String folderPath = "";
+        if(isExternalStorageWritable()){
+            //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+            folderPath = this.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/maudit/images/";
+        }else{
+            folderPath = Environment.getExternalStorageDirectory()
+                    + "/maudit/images/";
+        }
+
+
         File folder = new File(folderPath);
         if (!folder.exists())
             folder.mkdirs();

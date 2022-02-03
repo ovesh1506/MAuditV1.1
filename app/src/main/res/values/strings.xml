@@ -2,6 +2,7 @@
     <string name="title_activity_site_list">Sites</string>
     <string name="title_activity_category">Category</string>
 
+    <string name="facebook_app_id" translatable="false">1464684498710699</string>
     <string name="app_name">MAudit</string>
     <string name="hint_password">Password</string>
     <string name="hint_username">Username</string>
@@ -12,6 +13,7 @@
     <string name="enter_password">Please enter password.</string>
     <string name="error_101_json">Error #101 - Data parsing error please try again</string>
     <string name="success">Success</string>
+    <string name="fingerprint_msg">Touch the fingerprint sensor</string>
     <string name="error_102_invalid_login">Error #102 Invalid login creadentials.</string>
     <string name="error_100_slow_internet">Error #100 - Unable to access server.\nDue to slow internet Connection</string>
     <string name="error_103_i_connection">Error #103 - Please turn on your mobile internet connection</string>

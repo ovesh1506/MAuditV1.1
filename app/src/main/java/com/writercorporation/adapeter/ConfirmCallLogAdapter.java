@@ -5,10 +5,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v7.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.FileProvider;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +20,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.writercorporation.maudit.R;
+import com.writercorporation.maudit.VisitActivity;
 import com.writercorporation.model.QuestionList;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 /**
  * Created by hemina.shah on 4/19/2016.
@@ -181,7 +185,14 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
 
                 qlist.get(position).setSetPath(defaultPath);
                 file = new File(defaultPath);
-                Uri outputfile = Uri.fromFile(file);
+                Uri outputfile = null;//Uri.fromFile(file);
+                if(isExternalStorageWritable()){
+                    //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                    outputfile = FileProvider.getUriForFile(context, context.getApplicationContext().getPackageName() + ".provider", file);
+                }else{
+                    outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+                }
+
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
                 ((Activity)(context)). startActivityForResult(intent,callLogImageStatus);
             }
@@ -203,8 +214,14 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
     public String getPathOfImage() {
         Date currDate = new Date();
         long timeStamp = currDate.getTime();
-        String folderPath = Environment.getExternalStorageDirectory()
-                + "/maudit/images/";
+        String folderPath = "";
+        if(isExternalStorageWritable()){
+            //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+            folderPath = this.context.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/maudit/images/";
+        }else{
+            folderPath = Environment.getExternalStorageDirectory()
+                    + "/maudit/images/";
+        }
         File folder = new File(folderPath);
         if (!folder.exists())
             folder.mkdirs();

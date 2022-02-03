@@ -2,7 +2,7 @@ package com.writercorporation.adapeter;
 
 import android.app.DatePickerDialog;
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;

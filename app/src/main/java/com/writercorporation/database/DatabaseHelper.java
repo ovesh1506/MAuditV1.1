@@ -34,7 +34,7 @@ import com.writercorporation.model.VisitPurposeModel;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
 
     // name of the database file for your application
-    private static final String DATABASE_NAME = "MAudit.sqlite";
+    private static final String DATABASE_NAME = "NMAudit.sqlite";
 
 // any time you make changes to your database objects, you may have to increase the database version
     private static final int DATABASE_VERSION = 5;

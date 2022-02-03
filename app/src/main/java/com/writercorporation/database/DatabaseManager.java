@@ -47,22 +47,22 @@ public class DatabaseManager {
 
     static public void init(Context ctx) {
         if (null==instance) {
-
             instance = new DatabaseManager(ctx);
         }
     }
 
     static public DatabaseManager getInstance() {
+
         return instance;
     }
     private String password="writer@123";
-    private DatabaseHelperCipher helper;
+    private DatabaseHelper helper;
     private DatabaseManager(Context ctx) {
-        SQLiteDatabase.loadLibs(ctx);
-        helper = new DatabaseHelperCipher(ctx,password);
+        //SQLiteDatabase.loadLibs(ctx);
+        helper = new DatabaseHelper(ctx);
     }
 
-    public DatabaseHelperCipher getHelper() {
+    public DatabaseHelper getHelper() {
         return helper;
     }
 
@@ -381,17 +381,23 @@ ArrayList<SiteList> dupli=new ArrayList<>(obj);
     }
 
     public boolean authenticateLocal(String username, String password) throws SQLException{
+
         QueryBuilder<Login,Integer> queryBuilder = getHelper().getLoginDao().queryBuilder();
 
-        Where where = queryBuilder.where();
-        where.eq("username", username);
-        where.and();
-        where.eq("password", password);
-        int size = queryBuilder.query().size();
-        if(size==1)
-             return true;
-        else
+        try {
+            Where where = queryBuilder.where();
+            where.eq("username", username);
+            where.and();
+            where.eq("password", password);
+            int size = queryBuilder.query().size();
+            if(size==1)
+                return true;
+            else
+                return false;
+        }catch (Exception ex){
             return false;
+        }
+
     }
 
     public int authenticateCount(String username, String password) throws SQLException{

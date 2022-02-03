@@ -5,16 +5,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
+
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -70,7 +72,7 @@ public class QuestionActivity extends AppCompatActivity implements OnCheckedChan
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
         actionBar = getSupportActionBar();
-        check = new AppConstant(this);
+        check = new AppConstant();
         context = this;
         checkedChangeObj = this;
 
@@ -446,9 +448,13 @@ public class QuestionActivity extends AppCompatActivity implements OnCheckedChan
                 ArrayList<QuestionList> tempQue=new ArrayList<>();
                 tempQue.clear();
                 SimpleDateFormat ft = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
-                 Date date=ft.parse(check.getSiteAuditDate());
+                Log.e("Before","Audit Date code");
+                Log.e("Audit Date",check.getSiteAuditDate());
+                Date date=ft.parse(check.getSiteAuditDate());
+                Log.e("Date",date.toString());
 
                 Date currentDate=ft.parse("1/1/1900 12:00:00 AM");
+                Log.e("Date",currentDate.toString());
             //  int value=date.compareTo(currentDate);
 
 
@@ -477,7 +483,7 @@ public class QuestionActivity extends AppCompatActivity implements OnCheckedChan
             }
             catch (Exception e)
             {
-               // e.printStackTrace();
+                Log.e("Date Exception",e.getMessage());
                 return "Date Conversion Exception";
             }
             return "";

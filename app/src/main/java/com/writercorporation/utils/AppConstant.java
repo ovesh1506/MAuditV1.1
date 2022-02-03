@@ -2,19 +2,26 @@ package com.writercorporation.utils;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+import com.facebook.stetho.Stetho;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -36,7 +43,12 @@ import com.writercorporation.model.MicroCategory;
 import com.writercorporation.model.QuestionList;
 import com.writercorporation.network.CustomBroadCast;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.sql.SQLException;
@@ -45,7 +57,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -53,9 +67,18 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
+import okhttp3.Cache;
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import static com.facebook.FacebookSdk.getCacheDir;
+import static com.facebook.FacebookSdk.setAutoLogAppEventsEnabled;
 
 
-public class AppConstant {
+public class AppConstant extends Application {
     private Context _context;
     private static AppConstant instance;
     private SharedPreferences sharedPrefs;
@@ -70,17 +93,38 @@ public class AppConstant {
     private static final String USERID = "USERID";
     private static final String LastPosition = "LastPosition";
     private static final String SITE_AUDIT_DATE = "AUDITDATE";
+    public static final String LockTitleMsg = "Enable Fingerprint Access for login";
+    public static final String LockBodyMsg = "Press Yes to allow fingerprint access for MAudit Login";
 
-    public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService/MAuditRest.svc";//Pilot
-   // public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService_UAT/MAuditRest.svc";//UAT
-    //   public static final String SERVER_URL = "https://wsg.writercorporation.com/MAuditService/MAuditRest.svc";//Live
+    private static Retrofit retrofit;
+    private static final String IsLock = "ISLOCK";
+
+    //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService/MAuditRest.svc";//Pilot
+    //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService_UAT/MAuditRest.svc";//UAT
+    public static final String SERVER_URL = "https://wsguat.writercorporation.com/MAuditService_UAT/MAuditRest.svc/";//UAT
+    //public static final String SERVER_URL = "https://wsg.writercorporation.com/MAuditService/MAuditRest.svc";//Live
     public static final String KEY_CATEGORY_LIST = "CategoryList";
 
-    public AppConstant(Context _context) {
-        this._context = _context;
+    public static synchronized AppConstant getInstance() {
+        Log.e("GetInstance","called");
+//        if(instance == null){
+//            instance = new AppConstant();
+//        }
+        return instance;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.e("AppConstant class",this.getApplicationContext().getPackageName());
+        DatabaseManager.init(this);
+        instance = this;
+        this._context = this;
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(_context);
         editor = sharedPrefs.edit();
+        editor.apply();
         gson = new Gson();
+
 
         Type ansForeignType = new TypeToken<LazyForeignCollection<Answers, Integer>>() {
         }.getType();
@@ -89,11 +133,104 @@ public class AppConstant {
                 registerTypeAdapter(ansForeignType, new ForeignAnswerCollection()).excludeFieldsWithoutExposeAnnotation().create();
         dManager = DatabaseManager.getInstance();
 
+        Stetho.initializeWithDefaults(this.getApplicationContext());
+
+        //facebook stuff
+        //FacebookSdk.sdkInitialize(getApplicationContext());
+        //AppEventsLogger.activateApp(this);
+        //FacebookSdk.setAutoLogAppEventsEnabled(true);
+
     }
 
-    static public void init(Context ctx) {
+//    public AppConstant(Context _context) {
+//        Log.e("AppConstant class","called");
+//        this._context = _context;
+//        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(_context);
+//        editor = sharedPrefs.edit();
+//        editor.apply();
+//        gson = new Gson();
+//
+//
+//        Type ansForeignType = new TypeToken<LazyForeignCollection<Answers, Integer>>() {
+//        }.getType();
+//        gson = new GsonBuilder().registerTypeAdapter(Answers.class, new AnswerSerialize()).
+//                registerTypeAdapter(MicroCategory.class, new MicroCategorySerialize()).
+//                registerTypeAdapter(ansForeignType, new ForeignAnswerCollection()).excludeFieldsWithoutExposeAnnotation().create();
+//        dManager = DatabaseManager.getInstance();
+//
+//    }
+
+    public Retrofit getClient(){
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        // set your desired log level
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+
+        if (retrofit == null) {
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(SERVER_URL)
+                    .addConverterFactory(GsonConverterFactory.create(new GsonBuilder()
+                            .setLenient()
+                            .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                            .create()))
+                    .client(new OkHttpClient.Builder()
+                            .connectTimeout(10, TimeUnit.MINUTES)
+                            .writeTimeout(10,TimeUnit.MINUTES)
+                            .readTimeout(10, TimeUnit.MINUTES)
+                            .addNetworkInterceptor(new StethoInterceptor())
+//                            .retryOnConnectionFailure(true)
+                            //.cache(new Cache(getCacheDir(), 1024 * 1024)) // 1 MiB
+                            .addInterceptor(logging)
+
+                            .build())
+                    .build();
+//                            .authenticator(new RefTokenAuth())
+//                            .addInterceptor(chain -> {
+//                                Response res = chain.proceed(chain.request());
+//                                if (res.code() == 406) {
+//                                    BaseRepo.getInstance().truncateAllTables();
+//                                    getDatabase().clearAllTables();
+//                                    sharedpreferences.edit().clear().apply();
+//                                    try {
+//                                        JobManager.instance().cancelAll();
+//                                    } catch (Exception a) {
+//                                        Log.e("JobManager", "cancelAll", a);
+//                                    }
+//                                    startActivity(new Intent(mInstance, Login.class)
+//                                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK));
+//                                }
+//                                return res;
+//                            })
+                            //.build())
+                    //.build();
+        }
+        Log.e("Retorfit",retrofit.toString());
+        return retrofit;
+    }
+
+
+
+    public static String getLocalIpAddressString() {
+        try {
+            for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces(); en.hasMoreElements(); ) {
+                NetworkInterface intf = en.nextElement();
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements(); ) {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress()) {
+                        return inetAddress.getHostAddress().toString();
+                    }
+                }
+            }
+        } catch (SocketException ex) {
+            Log.e("IPADDRESS", ex.toString());
+        }
+        return null;
+    }
+
+    static public void initial(Context ctx) {
         if (null == instance) {
-            instance = new AppConstant(ctx);
+            instance = new AppConstant();
         }
 
     }
@@ -101,6 +238,15 @@ public class AppConstant {
     public void setSiteCode(String SiteCode) {
         editor.putString(SITECODE, SiteCode);
         editor.commit();
+    }
+
+    public void setIsLock(Boolean lock){
+        editor.putBoolean(IsLock,lock);
+        editor.commit();
+    }
+
+    public Boolean getIsLock() {
+        return sharedPrefs.getBoolean(IsLock,false);
     }
 
     public int getSiteID() {
@@ -174,9 +320,6 @@ public class AppConstant {
         return sharedPrefs.getString(USERID, "");
     }
 
-    public static AppConstant getInstance() {
-        return instance;
-    }
 
     public void showErrorMessage(String msg) {
         Toast toast = Toast.makeText(_context, "", Toast.LENGTH_SHORT);

@@ -1,9 +1,7 @@
 package com.writercorporation.maudit;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,15 +11,16 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -47,6 +46,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 public class ConfirmedCallLog extends AppCompatActivity implements OnConfirmCallLogListener{
 
@@ -77,7 +78,7 @@ public class ConfirmedCallLog extends AppCompatActivity implements OnConfirmCall
 
         }
 
-        check=new AppConstant(this);
+        check=new AppConstant();
 
         gps = new GPSTracker(this);
 
@@ -343,7 +344,15 @@ public class ConfirmedCallLog extends AppCompatActivity implements OnConfirmCall
 
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 File file=new File(path);
-                Uri outputfile = Uri.fromFile(file);
+                Uri outputfile = null;//Uri.fromFile(file);
+
+                if(isExternalStorageWritable()){
+                    //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                    outputfile = FileProvider.getUriForFile(ConfirmedCallLog.this, getApplicationContext().getPackageName() + ".provider", file);
+                }else{
+                    outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+                }
+
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
                 startActivityForResult(intent, ConfirmCallLogAdapter.CALLLOGIMAGE2);
             }

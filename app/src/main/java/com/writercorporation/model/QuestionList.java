@@ -3,6 +3,7 @@ package com.writercorporation.model;
 import android.graphics.Bitmap;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -15,28 +16,45 @@ import java.util.List;
  * Created by amol.tate on 3/16/2016.
  */
 public class QuestionList implements Serializable{
+    @SerializedName("AuditCategoryID")
     @Expose
+    private int auditCategoryID;
+    @SerializedName("CheckpointGroupID")
+    @Expose
+    private int checkpointGroupID;
+
+    @SerializedName("CheckpointSubGroupID")
+    @Expose
+    private int checkpointSubGroupID;
+
+    @Expose
+    @SerializedName("CheckpointItemID")
     @DatabaseField(id = true)
     private int id;
     @Expose
+    @SerializedName("CheckpointItemDesc")
     @DatabaseField
     private String questionText;
     @Expose
     @DatabaseField
     private int toShow;
     @Expose
+    @SerializedName("IsParent")
     @DatabaseField
     private String isParent;
     @Expose
+    @SerializedName("ParentCheckpointItemID")
     @DatabaseField
     private int parentCheckpointId;
     @Expose
+    @SerializedName("CheckpointItemOrder")
     @DatabaseField
     private int questionOrder;
     @Expose
     @DatabaseField(foreign = true,foreignAutoRefresh = true)
     private MicroCategory microCategory;
     @Expose
+    @SerializedName("IsOneTime")
     @DatabaseField
     String isOneTime;
     @ForeignCollectionField
@@ -60,6 +78,7 @@ public class QuestionList implements Serializable{
     @Expose
     private Answers checkedAnswer;
     @Expose
+    @SerializedName("Ans")
     List<Answers> list;
     @Expose
     private String setedDate = "Select Date";
@@ -317,5 +336,29 @@ public class QuestionList implements Serializable{
 
     public void setConfirmedImage2(Bitmap confirmedImage2) {
         this.confirmedImage2 = confirmedImage2;
+    }
+
+    public int getAuditCategoryID() {
+        return auditCategoryID;
+    }
+
+    public void setAuditCategoryID(int auditCategoryID) {
+        this.auditCategoryID = auditCategoryID;
+    }
+
+    public int getCheckpointGroupID() {
+        return checkpointGroupID;
+    }
+
+    public void setCheckpointGroupID(int checkpointGroupID) {
+        this.checkpointGroupID = checkpointGroupID;
+    }
+
+    public int getCheckpointSubGroupID() {
+        return checkpointSubGroupID;
+    }
+
+    public void setCheckpointSubGroupID(int checkpointSubGroupID) {
+        this.checkpointSubGroupID = checkpointSubGroupID;
     }
 }

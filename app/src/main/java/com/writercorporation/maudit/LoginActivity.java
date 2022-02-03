@@ -2,22 +2,35 @@ package com.writercorporation.maudit;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.drawable.Drawable;
+import android.hardware.fingerprint.FingerprintManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.biometric.BiometricPrompt;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+import androidx.core.hardware.fingerprint.FingerprintManagerCompat;
+import androidx.core.os.CancellationSignal;
+
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,6 +39,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.writercorporation.adapeter.SiteListAdapter;
@@ -33,15 +47,19 @@ import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.model.Answers;
 import com.writercorporation.model.CategoryList;
 import com.writercorporation.model.Login;
+import com.writercorporation.model.LoginReq;
+import com.writercorporation.model.LoginResp;
 import com.writercorporation.model.MicroCategory;
 import com.writercorporation.model.QuestionList;
 import com.writercorporation.model.SiteList;
 import com.writercorporation.model.SubCategory;
 import com.writercorporation.model.VisitPurposeModel;
+import com.writercorporation.network.ApiService;
 import com.writercorporation.network.NetworkTask;
 import com.writercorporation.network.OnTaskComplete;
 import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.ConnectionDetector;
+import com.writercorporation.utils.GenericType;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -60,8 +78,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 
 public class LoginActivity extends AppCompatActivity implements OnTaskComplete, View.OnClickListener {
@@ -81,12 +108,15 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
     String apkPath = null;
     String filenamme;
     SweetAlertDialog sweetAlertDialog;
-    ImageView imageViewCaptcha, imageReload;
+    ImageView imageViewCaptcha, imageReload,imageFingerPrint;
     EditText editTextCaptcha;
     Button reloadCaptcha;
+    TextView txtFingertprint;
     TextCaptcha textCaptcha;
 
+
     int numberOfCaptchaFalse = 0;
+    private String TAG = "LoginActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,9 +124,18 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
         setContentView(R.layout.activity_login);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        AppConstant.init(this);
+        //check = (AppConstant) getApplicationContext();
+        //AppConstant.initial(LoginActivity.this);
+        Log.e("OnLogin","Called");
         check = AppConstant.getInstance();
+
+
+        final BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+                .setTitle("Title text goes here")
+                .setSubtitle("Subtitle goes here")
+                .setDescription("This is the description")
+                .setNegativeButtonText("Cancel")
+                .build();
 
         SiteListAdapter.selected_postion = check.getSiteLastPos();
         try {
@@ -106,19 +145,21 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
         }
         cd = new ConnectionDetector(this);
         btnLogin = (Button) findViewById(R.id.btnLogin);
-        btnCancel = (Button) findViewById(R.id.btnCancel);
+        //btnCancel = (Button) findViewById(R.id.btnCancel);
         edtUsername = (EditText) findViewById(R.id.username);
         edtPassword = (EditText) findViewById(R.id.password);
         editTextCaptcha = (EditText) findViewById(R.id.editTextCaptcha);
         imageViewCaptcha = (ImageView) findViewById(R.id.imageCaptcha);
         //reloadCaptcha = (Button) findViewById(R.id.reloadCaptcha);
         imageReload = (ImageView) findViewById(R.id.imageReload);
+        imageFingerPrint = (ImageView) findViewById(R.id.img_fingerprint);
+        txtFingertprint = findViewById(R.id.fingerprint_error);
         url = (EditText) findViewById(R.id.url);
         url.setText(check.SERVER_URL);
         textCaptcha = new TextCaptcha(600, 150, 4, TextCaptcha.TextOptions.LETTERS_ONLY);
 
         imageViewCaptcha.setImageBitmap(textCaptcha.getImage());
-        btnCancel.setOnClickListener(this);
+        //btnCancel.setOnClickListener(this);
         btnLogin.setOnClickListener(this);
 
         imageReload.setOnClickListener(new View.OnClickListener() {
@@ -150,6 +191,15 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
             }
 
         }
+        if(check.getIsLock()){
+            imageFingerPrint.setVisibility(View.VISIBLE);
+            txtFingertprint.setVisibility(View.VISIBLE);
+            callBiometric();
+        }else{
+            imageFingerPrint.setVisibility(View.GONE);
+            txtFingertprint.setVisibility(View.GONE);
+        }
+
     }
 
     @Override
@@ -158,12 +208,132 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
         return super.onCreateOptionsMenu(menu);
     }
 
+    public void callBiometric(){
+
+        FingerprintManager fingerprintManager = null;
+        try{
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                fingerprintManager = (FingerprintManager) this.getSystemService(Context.FINGERPRINT_SERVICE);
+                Log.e("FingerPrint",fingerprintManager.toString());
+                if (!fingerprintManager.isHardwareDetected()) {
+                    //Log.e("Device not support","fingerprint");
+                    // Device doesn't support fingerprint authentication
+                    changeActivity();
+                } else if (!fingerprintManager.hasEnrolledFingerprints()) {
+                    changeActivity();
+                    Log.e("Device has not enrolled","fingerprint");
+                    // User hasn't enrolled any fingerprints to authenticate with
+                } else {
+                    setFingerPrint();
+                    //Log.e("Device support","fingerprint");
+                    // Everything is ready for fingerprint authentication
+                }
+            }else{
+                changeActivity();
+                //imageFingerPrint.setVisibility(View.GONE);
+                //txtFingertprint.setVisibility(View.GONE);
+            }
+        }catch(Exception ex){
+            //setFingerPrint();
+            changeActivity();
+            ex.printStackTrace();
+        }
+    }
+
+
+    public void setFingerPrint(){
+
+        SweetAlertDialog sweetAlertDialog;
+
+        if(check.getIsLock()){
+
+            FingerprintManagerCompat fingerprintManagerCompat = FingerprintManagerCompat.from(LoginActivity.this);
+
+            fingerprintManagerCompat.authenticate(null, 0, new CancellationSignal(), new FingerprintManagerCompat.AuthenticationCallback() {
+                @Override
+                public void onAuthenticationSucceeded(FingerprintManagerCompat.AuthenticationResult result) {
+                    super.onAuthenticationSucceeded(result);
+                    Log.e("onAuthenticationSucceed","success");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        imageFingerPrint.setImageDrawable(LoginActivity.this.getDrawable(R.drawable.fingerprint_dialog_fp_to_error));
+                    }else{
+                        imageFingerPrint.setImageDrawable(LoginActivity.this.getResources().getDrawable(R.drawable.fingerprint_dialog_fp_to_error));
+                    }
+                    txtFingertprint.setText("Fingerprint recognised successfully");
+                    changeActivity();
+                }
+
+                @Override
+                public void onAuthenticationError(int errorCode, CharSequence errString) {
+                    super.onAuthenticationError(errorCode, errString);
+                    Log.e("onAuthenticationError","success");
+                }
+
+                @Override
+                public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
+                    super.onAuthenticationHelp(helpCode, helpString);
+                    Log.e("onAuthenticationHelp","success");
+                }
+
+
+
+                @Override
+                public void onAuthenticationFailed() {
+                    super.onAuthenticationFailed();
+                    //Log.e("onAuthenticationFailed","success");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        //imageFingerPrint.setImageDrawable(LoginActivity.this.getDrawable(R.drawable.fingerprint_dialog_error_to_fp));
+                        //imageFingerPrint.setColorFilter(R.color.toastBg);
+                        Drawable myIcon = LoginActivity.this.getDrawable( R.drawable.fingerprint_dialog_fp_to_error);
+                        ColorFilter filter = new LightingColorFilter( Color.RED, Color.RED );
+                        myIcon.setColorFilter(filter);
+                        imageFingerPrint.setImageDrawable(myIcon);
+                    }else{
+                        //imageFingerPrint.setImageDrawable(LoginActivity.this.getResources().getDrawable(R.drawable.fingerprint_dialog_error_to_fp));
+                        Drawable myIcon = LoginActivity.this.getResources().getDrawable( R.drawable.fingerprint_dialog_fp_to_error);
+                        ColorFilter filter = new LightingColorFilter( Color.RED, Color.RED );
+                        myIcon.setColorFilter(filter);
+                        imageFingerPrint.setImageDrawable(myIcon);
+                    }
+                    txtFingertprint.setText("Fingerprint not recognized");
+                }
+            }, null);
+        }else{
+             sweetAlertDialog = new SweetAlertDialog(LoginActivity.this);
+             sweetAlertDialog.changeAlertType(SweetAlertDialog.WARNING_TYPE);
+             sweetAlertDialog.setTitleText(AppConstant.LockTitleMsg);
+             sweetAlertDialog.setCancelText("No");
+             sweetAlertDialog.setConfirmText("Yes");
+             sweetAlertDialog.show();
+
+             sweetAlertDialog.setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                 @Override
+                 public void onClick(SweetAlertDialog sweetAlertDialog) {
+                    Log.e("On Cancel button","click");
+                    changeActivity();
+                    sweetAlertDialog.dismiss();
+                 }
+             });
+
+             sweetAlertDialog.setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
+                 @Override
+                 public void onClick(SweetAlertDialog sweetAlertDialog) {
+                     Log.e("On Allow button","click");
+                     check.setIsLock(true);
+                     changeActivity();
+                     sweetAlertDialog.dismiss();
+                 }
+             });
+        }
+    }
+
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         switch ((id)) {
             case R.id.clearData:
-
                 ClearDataAlert();
 
         }
@@ -224,11 +394,11 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
             } else {
                 String ApkVersion = rootObject.optString("APKVers");
                 String isHousekeeping = rootObject.optString("VarIsHouseKeeping");
-                if (versionName != null & ApkVersion != null && !versionName.trim().equalsIgnoreCase(ApkVersion.trim())) {
-                    apkPath = rootObject.optString("APKPath");
-                    return "apkPath";
-                    // return upgradeversion(apkPath);
-                }
+//                if (versionName != null & ApkVersion != null && !versionName.trim().equalsIgnoreCase(ApkVersion.trim())) {
+//                    apkPath = rootObject.optString("APKPath");
+//                    return "apkPath";
+//                    // return upgradeversion(apkPath);
+//                }
                 check.setUserID(usernameValue);
                 dManager = DatabaseManager.getInstance();
                 //Insertion of category list
@@ -322,6 +492,7 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
                                 JSONObject siteJsonObject = siteList.getJSONObject(si);
                                 int siteId = siteJsonObject.optInt("SiteID");
                                 String siteCode = siteJsonObject.optString("SiteCode");
+                                String atmCode = siteJsonObject.optString("ATMCode");
                                 String siteName = siteJsonObject.optString("SiteName");
                                 String lstAuditDate = siteJsonObject.optString("LastAuditDate");
                                 String siteAddress = siteJsonObject.optString("SiteAddressLine1");
@@ -330,7 +501,7 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
                                 //String isBarcoded = "Y";
 
 
-                                SiteList site = new SiteList(siteId, siteCode, siteName, siteIsLogged, "UNSYNC", lstAuditDate, siteAddress, isBarcoded);
+                                SiteList site = new SiteList(siteId, siteCode, atmCode ,siteName, siteIsLogged, "UNSYNC", lstAuditDate, siteAddress, isBarcoded);
                                 siteArrayList.add(site);
                             }
                         }
@@ -416,26 +587,35 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
         if (result.equalsIgnoreCase("apkPath")) {
             if (Build.VERSION.SDK_INT >= 23) {
                 if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
-                        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED)
+                {
                     ActivityCompat.requestPermissions(LoginActivity.this,
                             new String[]{Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.READ_PHONE_STATE},
                             1);
                     return;
                 }
-                DownloadAPK downloadAPK = new DownloadAPK();
-                downloadAPK.execute();
+                callBiometric();
+                //DownloadAPK downloadAPK = new DownloadAPK();
+                //downloadAPK.execute();
             }
-
-            DownloadAPK downloadAPK = new DownloadAPK();
-            downloadAPK.execute();
+            callBiometric();
+            //DownloadAPK downloadAPK = new DownloadAPK();
+            //downloadAPK.execute();
             return;
         } else if (!result.equals(getString(R.string.success))) {
             check.showErrorMessage(result);
             return;
         }
+        callBiometric();
+        //changeActivity();
+        //Intent intent = new Intent(this, SiteListActivity.class);
+        //startActivity(intent);
+    }
 
+    public void changeActivity(){
         Intent intent = new Intent(this, SiteListActivity.class);
         startActivity(intent);
+
     }
 
     @Override
@@ -448,9 +628,9 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
     public void onClick(View view) {
         view.startAnimation(AnimationUtils.loadAnimation(this, R.anim.click_animation));
         switch (view.getId()) {
-            case R.id.btnCancel:
-                finish();
-                break;
+//            case R.id.btnCancel:
+//                finish();
+//                break;
             case R.id.btnLogin:
                 doLogin();
                 break;
@@ -549,26 +729,36 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
     public void internetLogin() {
         try {
             sweetAlertDialog = null;
-            sweetAlertDialog = check.showSweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE, false, "Authenticating....", null);
+            sweetAlertDialog = check.showSweetAlertDialog(LoginActivity.this, SweetAlertDialog.PROGRESS_TYPE, false, "Authenticating....", null);
             sweetAlertDialog.show();
           /*  mDialog.setMessage("Authenticating...");
             mDialog.show();*/
             edtUsername.setHint("Username");
             edtPassword.setHint("Password");
             dManager.getHelper().clearAllData();
-            JSONObject rootJsonObject = new JSONObject();
-            rootJsonObject.put("_type", "LoginInput:#MAuditRestService");
-            rootJsonObject.put("UserName", usernameValue);
-            rootJsonObject.put("Password", passwordValue);
-            rootJsonObject.put("IMEINO", "1234");
+            LoginReq req = new LoginReq();
+            req.setType("LoginInput:#MAuditRestService");
+            req.setUserName(usernameValue);
+            req.setPassword(passwordValue);
+            req.setImei("1234");
+//            JSONObject rootJsonObject = new JSONObject();
+//            rootJsonObject.put("_type", "LoginInput:#MAuditRestService");
+//            rootJsonObject.put("UserName", usernameValue);
+//            rootJsonObject.put("Password", passwordValue);
+//            rootJsonObject.put("IMEINO", "1234");
             check.setUserID(usernameValue);
-            NetworkTask task = new NetworkTask(this, this, rootJsonObject.toString(), "Login");
+            Log.e(" Login Request ",req.toString());
+
+            GenericType<LoginReq> data= new GenericType(req);
+
+            NetworkTask task = new NetworkTask(this, this,data, "Login");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             } else {
-                task.execute();
+                //task.execute();
             }
-        } catch (JSONException je) {
+        } catch (Exception je) {
+            sweetAlertDialog.dismiss();
             //je.printStackTrace();
         }
     }
@@ -649,13 +839,13 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
     class DownloadAPK extends AsyncTask<String, String, String> {
         ProgressDialog pd = null;
 
-        //SweetAlertDialog alertDialog;
+        SweetAlertDialog alertDialog;
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-          /*  alertDialog=check.showSweetAlertDialog(LoginActivity.this,SweetAlertDialog.PROGRESS_TYPE,false,"Apk Downloading ",null);
+            alertDialog=check.showSweetAlertDialog(LoginActivity.this,SweetAlertDialog.PROGRESS_TYPE,false,"Apk Downloading ",null);
             if(alertDialog!=null)
-                alertDialog.show();*/
+                alertDialog.show();
             pd = new ProgressDialog(LoginActivity.this);
             pd.setCancelable(false);
             pd.setMessage("Apk Downloading");
@@ -668,7 +858,15 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
         protected String doInBackground(String... params) {
             try {
 
-                File root = android.os.Environment.getExternalStorageDirectory();
+                File root = null;
+
+                if(isExternalStorageWritable()){
+                    root = LoginActivity.this.getExternalFilesDir(null);
+                }else{
+                    root = Environment.getExternalStorageDirectory();
+                }
+
+                //File root = android.os.Environment.getExternalStorageDirectory();
                 long total = 0;
                 File dir = new File(root.getAbsolutePath() + "/wsgMauditapk");
                 if (dir.exists() == false) {
@@ -676,7 +874,8 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
                 }
                 if (apkPath == null)
                     return "Apk Not found";
-
+                else
+                    apkPath = "https://wsg.writercorporation.com/apkfile/MAudit_1.0.0.9.apk";
                 URL url = new URL(apkPath); // you can write here any link
                 String[] parts = apkPath.split("/");
                 filenamme = parts[parts.length - 1];
@@ -710,7 +909,7 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
 */
 
             } catch (IOException e) {
-               // Log.d("DownloadManager", "Error: " + e);
+                Log.e("DownloadManager", "Error: " + e);
             }
             return "Done";
         }
@@ -732,10 +931,31 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
 
             }
             if (s.equalsIgnoreCase("Done")) {
-                Intent installapp = new Intent(Intent.ACTION_VIEW);
-                Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory() + "/wsgMauditapk/" + filenamme));
-                installapp.setDataAndType(uri, "application/vnd.android.package-archive");
-                startActivity(installapp);
+                /*Intent installapp = null;//new Intent(Intent.ACTION_VIEW);
+                Uri uri = null;
+                if(isExternalStorageWritable()){
+                    //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                    uri = FileProvider.getUriForFile(LoginActivity.this, getApplicationContext().getPackageName() + ".provider", new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+
+                }else{
+                    uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory() + "/wsgMauditapk/" + filenamme));//"MAudit_1.0.0.5.apk"
+                }
+
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    installapp = new Intent(Intent.ACTION_INSTALL_PACKAGE);
+                    installapp.setData(uri);
+                    installapp.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                }else{
+                    installapp = new Intent(Intent.ACTION_VIEW);
+                    installapp.setDataAndType(uri, "application/vnd.android.package-archive");
+                    installapp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                }
+//                installapp.setDataAndType(uri, "application/vnd.android.package-archive");
+                    startActivity(installapp);*/
+                Intent intent = new Intent(LoginActivity.this, SiteListActivity.class);
+                startActivity(intent);
             }
 
         }
@@ -751,3 +971,4 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
     }
 
 }
+

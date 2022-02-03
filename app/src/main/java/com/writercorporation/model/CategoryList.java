@@ -1,6 +1,7 @@
 package com.writercorporation.model;
 
 import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -15,9 +16,11 @@ import java.util.List;
 public class CategoryList {
 
     @Expose
+    @SerializedName("AuditCategoryDesc")
     @DatabaseField
     private String categoryName;
     @Expose
+    @SerializedName("AuditCategoryID")
     @DatabaseField(id = true)
     private int categoryServerId;
 

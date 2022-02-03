@@ -17,14 +17,15 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -35,11 +36,8 @@ import android.widget.Toast;
 
 import com.writercorporation.adapeter.RecyclerImageAdapter;
 import com.writercorporation.database.DatabaseManager;
-import com.writercorporation.model.CompletedSiteInfo;
 import com.writercorporation.model.ImageModel;
 import com.writercorporation.model.Login;
-import com.writercorporation.model.QuestionList;
-import com.writercorporation.model.SiteList;
 import com.writercorporation.network.CustomService;
 import com.writercorporation.network.CustomServiceImage;
 import com.writercorporation.utils.AppConstant;
@@ -48,15 +46,15 @@ import com.writercorporation.utils.ConnectionDetector;
 import com.writercorporation.utils.GPSTracker;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 public class ImageCapture extends AppCompatActivity implements GridSelected {
 
@@ -86,7 +84,7 @@ public class ImageCapture extends AppCompatActivity implements GridSelected {
         setContentView(R.layout.activity_image_capture);
         value.clear();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        check = new AppConstant(this);
+        check = new AppConstant();
         setSupportActionBar(toolbar);
         dManager = DatabaseManager.getInstance();
         actionBar = getSupportActionBar();
@@ -220,7 +218,16 @@ public class ImageCapture extends AppCompatActivity implements GridSelected {
         value.add(position, captureImage);
 
         ItemObject obj = new ItemObject("Edit", resizeImage(captureImage, 300, 300), true);
-        obj.setFileUri(Uri.fromFile(file));
+
+        Uri uri = null;
+        if(isExternalStorageWritable()){
+            //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+            uri = FileProvider.getUriForFile(ImageCapture.this, getApplicationContext().getPackageName() + ".provider", file);
+        }else{
+            uri = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+        }
+        //obj.setFileUri(Uri.fromFile(file));
+        obj.setFileUri(uri);
         if (itemList.size() == position + 1) {
             itemList.add(itemList.size() - 1, obj);
             recycler_view.scrollToPosition(recycler_view.getChildCount());
@@ -284,8 +291,14 @@ public class ImageCapture extends AppCompatActivity implements GridSelected {
     public String getPathOfImage() {
         Date currDate = new Date();
         long timeStamp = currDate.getTime();
-        String folderPath = Environment.getExternalStorageDirectory()
-                + "/maudit/images/";
+        String folderPath = "";
+        if(isExternalStorageWritable()){
+            //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+            folderPath = this.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/maudit/images/";
+        }else{
+            folderPath = Environment.getExternalStorageDirectory()
+                    + "/maudit/images/";
+        }
         File folder = new File(folderPath);
         if (!folder.exists())
             folder.mkdirs();
@@ -312,7 +325,15 @@ public class ImageCapture extends AppCompatActivity implements GridSelected {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             defaultPath = getPathOfImage();
             file = new File(defaultPath);
-            Uri outputfile = Uri.fromFile(file);
+            Uri outputfile = null;//Uri.fromFile(file);
+
+            if(isExternalStorageWritable()){
+                //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                outputfile = FileProvider.getUriForFile(ImageCapture.this, getApplicationContext().getPackageName() + ".provider", file);
+            }else{
+                outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+            }
+
 
             intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
             startActivityForResult(intent, recycler_view.getChildLayoutPosition(view));

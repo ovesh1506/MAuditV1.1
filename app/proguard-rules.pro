@@ -173,3 +173,8 @@
 #             #-keepclassmembers class fqcn.of.javascript.interface.for.webview {
 #             #   public *;
 #             #}
+#-keep class cn.pedant.** { *; }
+#-keep class cn.pedant.SweetAlert.Rotate3dAnimation {
+#    public <init>(...);
+# }
+

@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteException;
 import android.graphics.Bitmap;
@@ -14,14 +13,16 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.appcompat.widget.Toolbar;
+
 import android.telecom.Call;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -52,6 +53,8 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import static com.writercorporation.maudit.SiteListFragment.isExternalStorageWritable;
 
 /**
  * Created by hemina.shah on 4/11/2016.
@@ -103,8 +106,14 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
     public String getPathOfImage() {
         Date currDate = new Date();
         long timeStamp = currDate.getTime();
-        String folderPath = Environment.getExternalStorageDirectory()
-                + "/maudit/images/";
+        String folderPath = "";
+        if(isExternalStorageWritable()){
+            //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+            folderPath = this.getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/maudit/images/";
+        }else{
+            folderPath = Environment.getExternalStorageDirectory()
+                    + "/maudit/images/";
+        }
         File folder = new File(folderPath);
         if (!folder.exists())
             folder.mkdirs();
@@ -304,8 +313,15 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
             Intent intent=new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             defaultPath= getPathOfImage();
             file = new File(defaultPath);
-            Uri outputfile=Uri.fromFile(file);
 
+            Uri outputfile = null;//  Uri.fromFile(file);
+            if(isExternalStorageWritable()){
+                //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                outputfile = FileProvider.getUriForFile(CallLogActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+
+            }else{
+                outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+            }
             intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
             startActivityForResult(intent,position);
         }
@@ -314,7 +330,14 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             defaultPath = getPathOfImage();
             file = new File(defaultPath);
-            Uri outputfile = Uri.fromFile(file);
+            Uri outputfile = null;//Uri.fromFile(file);
+
+            if(isExternalStorageWritable()){
+                //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                outputfile = FileProvider.getUriForFile(CallLogActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+            }else{
+                outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+            }
 
             intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
             startActivityForResult(intent, position);
@@ -333,7 +356,13 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 defaultPath = getPathOfImage();
                 file = new File(defaultPath);
-                Uri outputfile = Uri.fromFile(file);
+                Uri outputfile = null;//Uri.fromFile(file);
+                if(isExternalStorageWritable()){
+                    //uri = Uri.fromFile(new File(LoginActivity.this.getExternalFilesDir(null) + "/wsgMauditapk/" + filenamme));
+                    outputfile = FileProvider.getUriForFile(CallLogActivity.this, getApplicationContext().getPackageName() + ".provider", file);
+                }else{
+                    outputfile = Uri.fromFile(file);//"MAudit_1.0.0.5.apk"
+                }
 
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputfile);
                 startActivityForResult(intent, position);

@@ -2,7 +2,7 @@ package com.writercorporation.adapeter;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +29,7 @@ public class SiteListAdapter extends RecyclerView.Adapter<SiteListAdapter.SiteVi
     public class SiteViewHolder extends RecyclerView.ViewHolder
     {
 
-        TextView lblsiteCode,txtsiteCode,txtCallloggedStatus,lblsitename,txtsiteName,txtVisit;
+        TextView lblsiteCode,txtsiteCode,txtCallloggedStatus,lblsitename,txtsiteName,txtVisit,txtatmcode;
         LinearLayout layout;
         ArrayList<SiteList> allList;
 
@@ -43,6 +43,7 @@ public class SiteListAdapter extends RecyclerView.Adapter<SiteListAdapter.SiteVi
             lblsitename=(TextView)itemView.findViewById(R.id.lblsitename);
             txtsiteName=(TextView)itemView.findViewById(R.id.txtsiteName);
             txtVisit=(TextView)itemView.findViewById(R.id.txtVisit);
+            txtatmcode=(TextView)itemView.findViewById(R.id.txtatmcode);
            // itemView.setOnClickListener(this);
             this.allList=list;
 
@@ -79,6 +80,8 @@ public class SiteListAdapter extends RecyclerView.Adapter<SiteListAdapter.SiteVi
         LinearLayout llayout=holder.layout;
         TextView txtVisit1=holder.txtVisit;
         txtVisit1.setText(model.getIsVisit());
+        TextView txtAtmCode=holder.txtatmcode;
+        txtAtmCode.setText(model.getAtmCode());
         llayout.setTag(model);
 
         if(llayout.getTag().equals(getItem(position))) {

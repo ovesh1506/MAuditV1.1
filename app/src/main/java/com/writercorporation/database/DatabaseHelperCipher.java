@@ -66,6 +66,7 @@ public class DatabaseHelperCipher extends OrmLiteSqliteOpenHelper {
 
     }
 
+
     @Override
     public void onCreate(SQLiteDatabase database, ConnectionSource connectionSource) {
         try {
