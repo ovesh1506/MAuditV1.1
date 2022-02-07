@@ -47,20 +47,15 @@ import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.model.Answers;
 import com.writercorporation.model.CategoryList;
 import com.writercorporation.model.Login;
-import com.writercorporation.model.LoginReq;
-import com.writercorporation.model.LoginResp;
 import com.writercorporation.model.MicroCategory;
 import com.writercorporation.model.QuestionList;
 import com.writercorporation.model.SiteList;
 import com.writercorporation.model.SubCategory;
 import com.writercorporation.model.VisitPurposeModel;
-import com.writercorporation.network.ApiService;
 import com.writercorporation.network.NetworkTask;
 import com.writercorporation.network.OnTaskComplete;
 import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.ConnectionDetector;
-import com.writercorporation.utils.GenericType;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -736,26 +731,26 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
             edtUsername.setHint("Username");
             edtPassword.setHint("Password");
             dManager.getHelper().clearAllData();
-            LoginReq req = new LoginReq();
-            req.setType("LoginInput:#MAuditRestService");
-            req.setUserName(usernameValue);
-            req.setPassword(passwordValue);
-            req.setImei("1234");
-//            JSONObject rootJsonObject = new JSONObject();
-//            rootJsonObject.put("_type", "LoginInput:#MAuditRestService");
-//            rootJsonObject.put("UserName", usernameValue);
-//            rootJsonObject.put("Password", passwordValue);
-//            rootJsonObject.put("IMEINO", "1234");
+//            LoginReq req = new LoginReq();
+//            req.setType("LoginInput:#MAuditRestService");
+//            req.setUserName(usernameValue);
+//            req.setPassword(passwordValue);
+//            req.setImei("1234");
+            JSONObject rootJsonObject = new JSONObject();
+            rootJsonObject.put("_type", "LoginInput:#MAuditRestService");
+            rootJsonObject.put("UserName", usernameValue);
+            rootJsonObject.put("Password", passwordValue);
+            rootJsonObject.put("IMEINO", "1234");
             check.setUserID(usernameValue);
-            Log.e(" Login Request ",req.toString());
+            //Log.e(" Login Request ",req.toString());
 
-            GenericType<LoginReq> data= new GenericType(req);
+            //GenericType<LoginReq> data= new GenericType(req);
 
-            NetworkTask task = new NetworkTask(this, this,data, "Login");
+            NetworkTask task = new NetworkTask(this, this,rootJsonObject.toString(), "Login");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             } else {
-                //task.execute();
+                task.execute();
             }
         } catch (Exception je) {
             sweetAlertDialog.dismiss();

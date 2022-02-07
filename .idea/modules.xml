@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/MAudit_Version1.0.0.5.iml" filepath="$PROJECT_DIR$/.idea/modules/MAudit_Version1.0.0.5.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/MAudit_Version1.0.0.5.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/MAudit_Version1.0.0.5.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MAuditV1.1.iml" filepath="$PROJECT_DIR$/.idea/MAuditV1.1.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/MAuditV1.1.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/MAuditV1.1.app.iml" />
     </modules>
   </component>
 </project>
