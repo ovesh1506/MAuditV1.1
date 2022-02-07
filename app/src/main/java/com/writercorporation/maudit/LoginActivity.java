@@ -388,6 +388,8 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
             JSONObject rootObject = new JSONObject(result);
             String loginStatus = rootObject.optString("LoginStatus");
 
+            Log.e("Result",result.toString() + "");
+            Log.e("Login Status",loginStatus + "abcd ");
             if (loginStatus.equals("N")) {
                 response = getString(R.string.error_102_invalid_login);
 
@@ -751,17 +753,48 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
 
             GenericType<LoginReq> data= new GenericType(req);
 
-            NetworkTask task = new NetworkTask(this, this,data, "Login");
+            //callLoginApi(req);
+
+            NetworkTask task = new NetworkTask(this, this,data, AppConstant.login);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             } else {
-                //task.execute();
+                task.execute();
             }
         } catch (Exception je) {
             sweetAlertDialog.dismiss();
             //je.printStackTrace();
         }
     }
+
+//    public String callLoginApi(LoginReq req){
+//        final String[] result = {""};
+//        ApiService app = check.getClient().create(ApiService.class);
+//        Call<LoginResp> calllog = app.login(req);
+//
+//        calllog.enqueue(new Callback<LoginResp>() {
+//            @Override
+//            public void onResponse(Call<LoginResp> call, Response<LoginResp> response) {
+//
+//                if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("Y")){
+//                    Log.e("Response Success",response.body().getLoginStatus() + " ");
+//                    result[0] = response.body().toString();
+//                }else{
+//                    if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("N"))
+//                        result[0] = "Invalid username & Password";
+//                    else
+//                        result[0] = response.code()  + response.message();
+//                }
+//
+//            }
+//            @Override
+//            public void onFailure(Call<LoginResp> call, Throwable t) {
+//                result[0] = t.getMessage();
+//                Log.e("onFailure",t.getLocalizedMessage());
+//            }
+//        });
+//        return result[0];
+//    }
 
     @Override
     protected void onResume() {

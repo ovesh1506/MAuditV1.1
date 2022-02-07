@@ -7,7 +7,9 @@ import android.util.Log;
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.maudit.R;
+import com.writercorporation.model.LoginReq;
 import com.writercorporation.model.LoginResp;
+import com.writercorporation.model.SiteReq;
 import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.GenericType;
 
@@ -37,6 +39,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static com.writercorporation.utils.AppConstant.SERVER_URL;
+import static com.writercorporation.utils.AppConstant.getCallDetails;
+import static com.writercorporation.utils.AppConstant.login;
 
 /**
  * Created by amol.tate on 9/29/2015.
@@ -48,34 +52,32 @@ import static com.writercorporation.utils.AppConstant.SERVER_URL;
     String method;
     DatabaseManager dManager;
     int id;
+    AppConstant app;
     ApiService api;
-
-
 
     public NetworkTask(Context context, OnTaskComplete taskCompleteObj, GenericType params, String method) {
         this.context = context;
         this.taskCompleteObj = taskCompleteObj;
         this.params = params;
         this.method = method;
-
     }
 
     public NetworkTask(Context context,  OnTaskComplete taskCompleteObj,String params, String method, int id) {
         this.context = context;
-        this.params = params;
+        //this.params = params;
         this.taskCompleteObj = taskCompleteObj;
         this.method = method;
         this.id = id;
     }
 
     @Override
-    protected String doInBackground(String... params) {
+    protected String doInBackground(String... param) {
         return performPostCall();
     }
 
     @Override
     protected void onPostExecute(String result) {
-        taskCompleteObj.dismissDialog(result);
+        //taskCompleteObj.dismissDialog(result);
     }
 
     @Override
@@ -85,18 +87,40 @@ import static com.writercorporation.utils.AppConstant.SERVER_URL;
 
     public String performPostCall() {
         URL url;
-        final String[] apiResponse = {""};
-        api = AppConstant.getInstance().getClient().create(ApiService.class);
+        String apiResponse = "";
+
         try {
             AppConstant.trustAllHosts();
             if (method.equalsIgnoreCase("Login")) {
                 dManager = DatabaseManager.getInstance();
-                JSONObject creadentials = new JSONObject(params);
+                app = AppConstant.getInstance();
+                api = app.getClient().create(ApiService.class);
+                LoginReq req = (LoginReq) params.getObject();
+                //JSONObject creadentials = new JSONObject(params);
 
-                if (dManager.authenticateLocal(creadentials.optString("UserName"), creadentials.optString("Password"))) {
+                //if (dManager.authenticateLocal(creadentials.optString("UserName"), creadentials.optString("Password"))) {
+                //    return context.getString(R.string.success);
+                //}
+                if(dManager.authenticateLocal(req.getUserName(),req.getPassword())){
                     return context.getString(R.string.success);
                 }
             }
+
+
+            switch (method){
+                case login :{
+                    LoginReq para = (LoginReq) params.getObject();
+                    apiResponse = callLoginApi(para);
+                    break;
+                }
+
+                case getCallDetails :{
+                    SiteReq para = (SiteReq) params.getObject();
+                    apiResponse = callLogDetails(para);
+                    break;
+                }
+            }
+
 //            url = new URL(SERVER_URL+"/"+method);
 //
 //            Log.e("Url",SERVER_URL + "/"+method);
@@ -154,35 +178,86 @@ import static com.writercorporation.utils.AppConstant.SERVER_URL;
 //        }
 
 
-//          api.login(params).enqueue(new Callback<LoginResp>() {
-//              @Override
-//              public void onResponse(Call<LoginResp> call, Response<LoginResp> response) {
-//
-//                  if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("Y")){
-//                        Log.e("Response Success",response.body().getLoginStatus() + " ");
-//                        apiResponse[0] = response.body().toString();
-//                  }else{
-//                      Log.e("Response Success","Else Part");
-//                  }
-//
-//              }
-//
-//              @Override
-//              public void onFailure(Call<LoginResp> call, Throwable t) {
-//                Log.e("onFailure",t.getLocalizedMessage());
-//              }
-//          });
         }
         catch (Exception e) {
             Log.e("Exception e",e.getMessage());
             e.printStackTrace();
         }
-        publishProgress("Saving Data...");
-        apiResponse[0] = taskCompleteObj.onTaskComplete(apiResponse[0]);
-        taskCompleteObj.onTaskComplete(apiResponse[0],id);
-        Log.e("Final Response ", apiResponse[0]);
-        return apiResponse[0];
+        //publishProgress("Saving Data...");
+        //apiResponse = taskCompleteObj.onTaskComplete(apiResponse);
+        //taskCompleteObj.onTaskComplete(apiResponse,id);
+        //Log.e("Final Response ", apiResponse);
+        return apiResponse;
     }
+
+    public String callLoginApi(LoginReq req){
+        final String[] result = {""};
+        app = AppConstant.getInstance();
+        api = app.getClient().create(ApiService.class);
+        Call<LoginResp> calllog = api.login(req);
+
+        calllog.enqueue(new Callback<LoginResp>() {
+        @Override
+        public void onResponse(Call<LoginResp> call, Response<LoginResp> response) {
+
+          if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("Y")){
+               Log.e("Response Success",response.body().getLoginStatus() + " ");
+               result[0] = response.body().toString();
+          }else{
+              result[0] = "";
+              //if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("N"))
+                //result[0] = "Invalid username & Password";
+              //else
+                //result[0] = response.code()  + response.message();
+          }
+            publishProgress("Saving Data...");
+            result[0] = taskCompleteObj.onTaskComplete(result[0]);
+            taskCompleteObj.onTaskComplete(result[0],id);
+        }
+        @Override
+        public void onFailure(Call<LoginResp> call, Throwable t) {
+            result[0] = "";//t.getMessage();
+            Log.e("onFailure",t.getLocalizedMessage());
+            publishProgress("Unable to save data...");
+            result[0] = taskCompleteObj.onTaskComplete(result[0]);
+            taskCompleteObj.onTaskComplete(result[0],id);
+        }
+        });
+        //publishProgress("Saving Data...");
+        //result[0] = taskCompleteObj.onTaskComplete(result[0]);
+        //taskCompleteObj.onTaskComplete(result[0],id);
+        //Log.e("Final Response ", apiResponse);
+        return null;
+    }
+
+    public String callLogDetails(SiteReq req){
+        final String[] result = {""};
+        Call<LoginResp> call = api.getCallLog(req);
+
+        call.enqueue(new Callback<LoginResp>() {
+            @Override
+            public void onResponse(Call<LoginResp> call, Response<LoginResp> response) {
+
+                if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("Y")){
+                    Log.e("Response Success",response.body().getLoginStatus() + " ");
+                    result[0] = response.body().toString();
+                }else{
+                    if(response.body()!=null && response.body().getLoginStatus().equalsIgnoreCase("N"))
+                        result[0] = "Invalid username & Password";
+                    else
+                        result[0] = response.code()  + response.message();
+                }
+            }
+            @Override
+            public void onFailure(Call<LoginResp> call, Throwable t) {
+                result[0] = t.getMessage();
+                Log.e("onFailure",t.getLocalizedMessage());
+            }
+        });
+        return result[0];
+    }
+
+
     private String getPostDataString(HashMap<String, String> params) throws UnsupportedEncodingException {
         StringBuilder result = new StringBuilder();
         boolean first = true;

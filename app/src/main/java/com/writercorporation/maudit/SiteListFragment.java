@@ -41,11 +41,14 @@ import com.writercorporation.adapeter.SiteListAdapter;
 import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.model.CallLoggedList;
 import com.writercorporation.model.Login;
+import com.writercorporation.model.LoginReq;
 import com.writercorporation.model.SiteList;
+import com.writercorporation.model.SiteReq;
 import com.writercorporation.network.NetworkTask;
 import com.writercorporation.network.OnTaskComplete;
 import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.ConnectionDetector;
+import com.writercorporation.utils.GenericType;
 import com.writercorporation.utils.RecyclerViewOnTouchListener;
 
 import org.json.JSONArray;
@@ -343,10 +346,15 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
             if (sweetAlertDialog != null)
                 sweetAlertDialog.show();
 
-            JSONObject rootJsonObject = new JSONObject();
-            rootJsonObject.put("SiteID", siteID);
+            SiteReq siteReq = new SiteReq();
+            siteReq.setSiteId(siteId);
+
+            GenericType<SiteReq> data= new GenericType(siteReq);
+
+            //JSONObject rootJsonObject = new JSONObject();
+            //rootJsonObject.put("SiteID", siteID);
             if (conn.isConnectingToInternet()) {
-                NetworkTask task = new NetworkTask(getActivity(), this, rootJsonObject.toString(), "GetCallLogDetails");
+                NetworkTask task = new NetworkTask(getActivity(), this, data, "GetCallLogDetails");
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
@@ -355,7 +363,7 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
             } else {
                 check.showErrorMessage(getString(R.string.error_100_slow_internet));
             }
-        } catch (JSONException je) {
+        } catch (Exception je) {
             //je.printStackTrace();
         }
     }

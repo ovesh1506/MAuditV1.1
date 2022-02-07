@@ -101,9 +101,13 @@ public class AppConstant extends Application {
 
     //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService/MAuditRest.svc";//Pilot
     //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService_UAT/MAuditRest.svc";//UAT
-    public static final String SERVER_URL = "https://wsguat.writercorporation.com/MAuditService_UAT/MAuditRest.svc/";//UAT
-    //public static final String SERVER_URL = "https://wsg.writercorporation.com/MAuditService/MAuditRest.svc";//Live
+    //public static final String SERVER_URL = "https://wsguat.writercorporation.com/MAuditService_UAT/MAuditRest.svc/";//UAT
+    public static final String SERVER_URL = "https://wsg.writercorporation.com/MAuditService/MAuditRest.svc/";//Live
     public static final String KEY_CATEGORY_LIST = "CategoryList";
+
+    public static final String login = "Login";
+    public static final String getCallDetails = "GetCallLogDetails";
+
 
     public static synchronized AppConstant getInstance() {
         Log.e("GetInstance","called");

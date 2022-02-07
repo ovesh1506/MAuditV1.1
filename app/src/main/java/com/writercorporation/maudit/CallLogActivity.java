@@ -35,6 +35,7 @@ import com.writercorporation.database.DatabaseManager;
 import com.writercorporation.model.CallLoggedList;
 import com.writercorporation.model.CompleteCallLogInfo;
 import com.writercorporation.model.QuestionList;
+import com.writercorporation.model.SiteReq;
 import com.writercorporation.network.CallLogService;
 import com.writercorporation.network.CustomBroadCast;
 import com.writercorporation.network.NetworkTask;
@@ -43,6 +44,7 @@ import com.writercorporation.utils.AppConstant;
 import com.writercorporation.utils.BitmapLoader;
 import com.writercorporation.utils.ConnectionDetector;
 import com.writercorporation.utils.GPSTracker;
+import com.writercorporation.utils.GenericType;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -551,11 +553,16 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
             pd.show();
         try {
 
-            JSONObject rootJsonObject = new JSONObject();
+            SiteReq siteReq = new SiteReq();
+            siteReq.setSiteId(check.getSiteID());
+
+            GenericType<SiteReq> data= new GenericType(siteReq);
+
+            //JSONObject rootJsonObject = new JSONObject();
             //rootJsonObject.put("SiteID", siteID);
-            rootJsonObject.put("SiteID", check.getSiteID());
+            //rootJsonObject.put("SiteID", check.getSiteID());
             if(conn.isConnectingToInternet()) {
-                NetworkTask task = new NetworkTask(this, this, rootJsonObject.toString(), "GetCallLogDetails");
+                NetworkTask task = new NetworkTask(this, this, data, AppConstant.getCallDetails);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                     task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                 } else {
@@ -566,7 +573,7 @@ public class CallLogActivity extends AppCompatActivity implements OnCallLogListe
             {
                 check.showErrorMessage(getString(R.string.error_100_slow_internet));
             }
-        }catch(JSONException je){
+        }catch(Exception je){
            // je.printStackTrace();
         }
 
