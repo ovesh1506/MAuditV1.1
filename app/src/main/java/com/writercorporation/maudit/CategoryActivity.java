@@ -50,7 +50,7 @@ public class CategoryActivity extends AppCompatActivity implements AdapterView.O
         actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        check = new AppConstant();
+        check = AppConstant.getInstance();
         dManager = DatabaseManager.getInstance();
         try{
             isHousekeepingList=dManager.getHousekeeping();

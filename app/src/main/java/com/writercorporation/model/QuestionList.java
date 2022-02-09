@@ -91,6 +91,12 @@ public class QuestionList implements Serializable{
     @Expose
     private String setPath;
 
+    @Expose
+    private String priority;
+
+    @Expose
+    private String remarks;
+
     private boolean makeCallLog = false;
 
     public QuestionList() {
@@ -360,5 +366,21 @@ public class QuestionList implements Serializable{
 
     public void setCheckpointSubGroupID(int checkpointSubGroupID) {
         this.checkpointSubGroupID = checkpointSubGroupID;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks;
     }
 }

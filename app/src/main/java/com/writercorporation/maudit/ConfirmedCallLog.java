@@ -78,7 +78,7 @@ public class ConfirmedCallLog extends AppCompatActivity implements OnConfirmCall
 
         }
 
-        check=new AppConstant();
+        check=AppConstant.getInstance();
 
         gps = new GPSTracker(this);
 
@@ -264,6 +264,15 @@ public class ConfirmedCallLog extends AppCompatActivity implements OnConfirmCall
                     }
                     else
                         questionObj.put("CallLogImg2","");
+
+                    if(question.getPriority()!=null){
+                        questionObj.put("Priority",question.getPriority());
+                        questionObj.put("PriorityRemark",question.getRemarks());
+                    }else{
+
+                        questionObj.put("Priority","");
+                        questionObj.put("PriorityRemark","");
+                    }
 
                     questionObj.put("QuestionID", question.getId());
                     questionObj.put("ExtraFieldValue",question.getExtraFieldValue());

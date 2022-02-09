@@ -159,7 +159,7 @@
                 android:id="@+id/fingerprint_error"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/app_name"
+                android:text="@string/fingerprint_msg"
                 android:layout_marginLeft="8dp"
                 android:layout_marginRight="8dp"
                 android:textAlignment="center"

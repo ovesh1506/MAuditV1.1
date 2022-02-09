@@ -8,20 +8,30 @@ import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.AppCompatEditText;
 import androidx.core.content.FileProvider;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.writercorporation.maudit.R;
 import com.writercorporation.maudit.VisitActivity;
 import com.writercorporation.model.QuestionList;
+import com.writercorporation.utils.TextChangeListener;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,6 +46,7 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
 
     Context context;
     ViewHolder1 holder=null;
+    Boolean bool = true;
     public ArrayList<QuestionList> qlist;
     ArrayList<Integer> hiddenPositions = new ArrayList<>();
     String defaultPath;
@@ -52,8 +63,9 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
     }
     @Override
     public int getCount() {
-
-        return qlist.size()- hiddenPositions.size();
+        int count = qlist.size()- hiddenPositions.size();
+        Log.e("Item count",count + " ");
+        return count;
     }
 
     @Override
@@ -68,15 +80,19 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
 
 
 
+
     class  ViewHolder1
     {
         TextView txtQuetion,txtAnswer;
         CheckBox checkBox;
         RelativeLayout rootLayout;
         ImageView ivConfirmedCallLog1,ivConfirmedCallLog2;
+        RadioGroup rgPriority;
+        LinearLayout llRemark;
+        AppCompatEditText edtRemark;
     }
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, final ViewGroup parent) {
 
         LayoutInflater minflater=(LayoutInflater)context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
         final int pos;
@@ -90,6 +106,9 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
             holder.rootLayout = (RelativeLayout)convertView.findViewById(R.id.rootLayout);
             holder.ivConfirmedCallLog1=(ImageView)convertView.findViewById(R.id.ivConfirmedCallLog1);
             holder.ivConfirmedCallLog2=(ImageView)convertView.findViewById(R.id.ivConfirmedCallLog2);
+            holder.rgPriority = (RadioGroup)convertView.findViewById(R.id.rg_priority);
+            holder.llRemark = (LinearLayout)convertView.findViewById(R.id.llremark);
+            holder.edtRemark = (AppCompatEditText)convertView.findViewById(R.id.et_comment);
             convertView.setTag(holder);
         }
         else
@@ -116,6 +135,11 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
             holder.ivConfirmedCallLog1.setImageBitmap(question.getConfirmedImage1());
             holder.ivConfirmedCallLog2.setImageBitmap(question.getConfirmedImage2());
 
+            //if(position == 1) {
+                //holder.llRemark.setVisibility(View.VISIBLE);
+                //holder.edtRemark.setText("Abcd");
+            //}
+
             /*holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -128,6 +152,7 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
                 }
             });*/
 
+            final View finalConvertView = convertView;
             holder.checkBox.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -145,6 +170,8 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
                         que.setConfirmedImage1(null);
                         que.setConfirmedImage2(null);
                     }
+
+                    //que.setRemarks(finalConvertView.findViewById(R.id.et_comment));
                     qlist.set(pos, que);
                     notifyDataSetChanged();
 
@@ -165,7 +192,129 @@ public class ConfirmCallLogAdapter extends BaseAdapter{
                     getAlertMessage(pos, CALLLOGIMAGE2);
                 }
             });
-        }
+
+
+
+            holder.rgPriority.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(RadioGroup group, int checkedId) {
+                    RadioButton button = group.findViewById(checkedId);
+                    Log.e("position",pos + " ");
+
+                    if(checkedId!=-1){
+                        if(button.getText().equals("High")){
+                            if(finalConvertView.findViewById(R.id.llremark).getVisibility() != View.VISIBLE){
+                                finalConvertView.findViewById(R.id.llremark).setVisibility(View.VISIBLE);
+                            }
+
+                        }else{
+                            if(finalConvertView.findViewById(R.id.llremark).getVisibility() == View.VISIBLE){
+                                finalConvertView.findViewById(R.id.llremark).setVisibility(View.GONE);
+                            }
+                        }
+                        QuestionList que = qlist.get(pos);
+                        que.setPositon(pos);
+                        que.setPriority(button.getText().toString());
+                        que.setRemarks("");
+                        qlist.set(pos, que);
+                        notifyDataSetChanged();
+                        //finalConvertView.findViewById(R.id.et_comment).
+                        Log.e("Button text",button.getText() + " ");
+                        //holder.llRemark.setVisibility(View.GONE);
+                    }
+                }
+            });
+
+            //holder.edtRemark = finalConvertView.findViewById(R.id.et_comment);
+
+                holder.edtRemark.addTextChangedListener(new TextChangeListener<AppCompatEditText>(holder.edtRemark) {
+                        @Override
+                        public void onTextChanged(AppCompatEditText target, Editable s) {
+
+                            final String watcher = s.toString();
+                            Log.e("Text Changes", watcher + "Pos" + pos);
+                            QuestionList que = qlist.get(pos);
+                            que.setPositon(pos);
+                            que.setRemarks(watcher);
+                            qlist.set(pos, que);
+
+//                            holder.edtRemark.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//                                @Override
+//                                public void onFocusChange(View v, boolean hasFocus) {
+//                                    if(hasFocus)
+//                                        Log.e("OnFocus", watcher + "Pos" + pos);
+//                                    //QuestionList que = qlist.get(pos);
+//                                    //que.setPositon(pos);
+//                                    //que.setRemarks(watcher.toString());
+//                                    //qlist.set(pos, que);
+//
+//                                }
+//                            });
+                            //notifyDataSetChanged();
+                        }
+                });
+
+
+
+
+//            finalConvertView.findViewById(R.id.et_comment).setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//                @Override
+//                public void onFocusChange(View v, boolean hasFocus) {
+//
+//                    if(hasFocus)
+//                        Log.e("Focus","Pos" + pos + holder.edtRemark.getText().toString() + " ");
+//
+//
+//                }
+//
+//            });
+
+
+
+
+//            holder.edtRemark.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    v.getT
+//                    Log.e("EditText", v.toString() + "Pos" + pos);
+//                    QuestionList que = qlist.get(pos);
+//                    que.setPositon(pos);
+//                    que.setRemarks(s.toString());
+//                    qlist.set(pos, que);
+//                }
+//
+//                @Override
+//                public void onFocusChange(View v, boolean hasFocus) {
+//                    holder.edtRemark.addTextChangedListener(new TextChangeListener<AppCompatEditText>(holder.edtRemark) {
+//                        @Override
+//                        public void onTextChanged(AppCompatEditText target, Editable s) {
+//                            if(target.isFocusable())
+//                            {
+//                                Log.e("EditText", s.toString() + "Pos" + pos);
+//                                QuestionList que = qlist.get(pos);
+//                                que.setPositon(pos);
+//                                que.setRemarks(s.toString());
+//                                qlist.set(pos, que);
+//                            }
+//                            //notifyDataSetChanged();
+//                        }
+//                    });
+//                }
+//            });
+
+
+
+//            if(holder.edtRemark.getText().toString()!=null){
+//                QuestionList que = qlist.get(pos);
+//                que.setPositon(pos);
+//                que.setPriority(holder.edtRemark.getText().toString());
+//                qlist.set(pos, que);
+//                notifyDataSetChanged();
+//            }
+
+            //que.setRemarks(holder.edtRemark.getText().toString());
+
+        };
 
         return convertView;
     }

@@ -186,6 +186,9 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
             }
 
         }
+
+        Log.e("Lock",check.getIsLock() +" ");
+
         if(check.getIsLock()){
             imageFingerPrint.setVisibility(View.VISIBLE);
             txtFingertprint.setVisibility(View.VISIBLE);
@@ -315,8 +318,8 @@ public class LoginActivity extends AppCompatActivity implements OnTaskComplete, 
                  public void onClick(SweetAlertDialog sweetAlertDialog) {
                      Log.e("On Allow button","click");
                      check.setIsLock(true);
-                     changeActivity();
                      sweetAlertDialog.dismiss();
+                     changeActivity();
                  }
              });
         }

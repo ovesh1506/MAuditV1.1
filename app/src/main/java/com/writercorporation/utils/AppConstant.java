@@ -101,7 +101,7 @@ public class AppConstant extends Application {
 
     //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService/MAuditRest.svc";//Pilot
     //public static final String SERVER_URL = "https://wsgsvc.writercorporation.com/MAuditService_UAT/MAuditRest.svc";//UAT
-    public static final String SERVER_URL = "https://wsguat.writercorporation.com/MAuditService_UAT/MAuditRest.svc/";//UAT
+    public static final String SERVER_URL = "https://wsguat.writercorporation.com/MAuditService_UAT/MAuditRest.svc";//UAT
     //public static final String SERVER_URL = "https://wsg.writercorporation.com/MAuditService/MAuditRest.svc";//Live
     public static final String KEY_CATEGORY_LIST = "CategoryList";
 
@@ -120,7 +120,7 @@ public class AppConstant extends Application {
         DatabaseManager.init(this);
         instance = this;
         this._context = this;
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(_context);
+        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         editor = sharedPrefs.edit();
         editor.apply();
         gson = new Gson();
@@ -317,7 +317,12 @@ public class AppConstant extends Application {
     }
 
     public String getUserID() {
-        return sharedPrefs.getString(USERID, "");
+//        if(sharedPrefs == null) {
+//            sharedPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+//            editor = sharedPrefs.edit();
+//            editor.apply();
+//        }
+        return sharedPrefs.getString(USERID, "EaktaG");
     }
 
 
@@ -452,6 +457,7 @@ public class AppConstant extends Application {
                 }
             } else {
                 JsonObject jsonObject = (JsonObject) json;
+                Log.e("Json",jsonObject.toString() + " ");
                 int id = jsonObject.get("id").getAsInt();
                 String answerText = jsonObject.get("answerText").getAsString();
                 String callLog = jsonObject.get("callLog").getAsString();
@@ -459,7 +465,7 @@ public class AppConstant extends Application {
                 String controlType = jsonObject.get("controlType").getAsString();
                 String isChildShow = jsonObject.get("isChildShow").getAsString();
                 String controlValue = jsonObject.get("controlValue").getAsString();
-                String textInputType = jsonObject.get("textInputType").getAsString();
+                String textInputType = "";//jsonObject.get("textInputType").getAsString();
                 return new Answers(id, answerText, callLog, controlCaption, controlType,textInputType, isChildShow, controlValue, null);
             }
             return null;

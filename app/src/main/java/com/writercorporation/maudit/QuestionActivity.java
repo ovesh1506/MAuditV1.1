@@ -72,7 +72,7 @@ public class QuestionActivity extends AppCompatActivity implements OnCheckedChan
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question);
         actionBar = getSupportActionBar();
-        check = new AppConstant();
+        check = AppConstant.getInstance();
         context = this;
         checkedChangeObj = this;
 

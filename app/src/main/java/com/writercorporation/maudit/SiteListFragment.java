@@ -146,7 +146,7 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
                 isHousekeeping = isHousekeepingList.get(0).getIsHousekeeping();
             } catch (Exception e) {
             }
-            check = new AppConstant();
+            check = AppConstant.getInstance();
             sweetAlertDialog = check.showSweetAlertDialog(getContext(), SweetAlertDialog.PROGRESS_TYPE, false, "CallLog data downloading....", null);
             recyclerView = (RecyclerView) view.findViewById(R.id.list_recycle);
             recycleLayout = new LinearLayoutManager(getActivity());
@@ -231,6 +231,9 @@ public class SiteListFragment extends Fragment implements SearchView.OnQueryText
         siteCode = adapter.getItem(position).getSiteCode();
         siteSelectposition = position;
         userId = check.getUserID();
+        if(userId==null)
+            userId = "EaktaG";
+        Log.e("USERID",userId + " ");
         auditDate = adapter.getItem(position).getLstAuditDate();
         siteId = adapter.getItem(position).getSiteID();
         barcodeScanning = adapter.getItem(position).getIsBarcoded();

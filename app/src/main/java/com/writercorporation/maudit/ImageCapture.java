@@ -84,7 +84,7 @@ public class ImageCapture extends AppCompatActivity implements GridSelected {
         setContentView(R.layout.activity_image_capture);
         value.clear();
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        check = new AppConstant();
+        check = AppConstant.getInstance();
         setSupportActionBar(toolbar);
         dManager = DatabaseManager.getInstance();
         actionBar = getSupportActionBar();

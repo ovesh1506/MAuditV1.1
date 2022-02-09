@@ -70,7 +70,7 @@ public class SiteListActivity extends AppCompatActivity {
         appBarLayout.setExpanded(false, true);
         setSupportActionBar(toolbar);
         actionBar = getSupportActionBar();
-        check = new AppConstant();
+        check = AppConstant.getInstance();
         if(actionBar!=null)
             actionBar.setDisplayHomeAsUpEnabled(true);
         try {
